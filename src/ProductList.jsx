@@ -2,13 +2,21 @@ import React, { useState, useEffect } from 'react';
 import './ProductList.css'
 import CartItem from './CartItem';
 import { addItem } from './CartSlice';
+import { useDispatch, useSelector } from 'react-redux';
+
 function ProductList({ onHomeClick }) {
     const [showCart, setShowCart] = useState(false);
     const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
     const [addedToCart, setAddedToCart] = useState({});
+    const dispatch = useDispatch();
+    const cartItems = useSelector(state => state.cart.items);
 
     const handleAddToCart = (product) => {
-        dispatch(addItem(product)); // Dispatch the action to add the product to the cart (Redux action)
+        dispatch(addItem({
+            name: product.name,
+            image: product.image,
+            cost: product.cost
+    })); // Dispatch the action to add the product to the cart (Redux action)
 
         setAddedToCart((prevState) => ({ // Update the local state to reflect that the product has been added
             ...prevState, // Spread the previous state to retain existing entries
@@ -291,7 +299,10 @@ function ProductList({ onHomeClick }) {
                                 <div>{category.category}</div> {/* Display the category name */}
                             </h1>
                             <div className='product-list'> {/* Container for the list of plant cards */}
-                                {category.plants.map((plant, plantIndex) => ( // Loop through each plant in the current category
+                                {category.plants.map((plant, plantIndex) => { // Loop through each plant in the current category
+                                    const isInCart = cartItems.some(item => item.name === plant.name);
+
+                                    return (
                                     <div className='product-card' key={plantIndex}> {/* Unique key for each plant card */}
                                         <img
                                             className='product-large'
@@ -305,11 +316,17 @@ function ProductList({ onHomeClick }) {
                                         <button
                                             className='product-button'
                                             onClick={() => handleAddToCart(plant)} // Handle adding plant to cart
+                                            disabled={isInCart}
+                                            style={{
+                                                backgroundColor: isInCart ? 'gray' : '#4CAF50',
+                                                cursor: isInCart ? 'not-allowed' : 'pointer',
+                                            }}
                                         >
-                                            Add to Cart
+                                            {isInCart ? 'Added to Cart' : 'Add to Cart'}
                                         </button>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     ))}
